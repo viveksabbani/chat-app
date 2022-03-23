@@ -1,6 +1,8 @@
 const express = require('express');
 const socketio = require('socket.io');
 const http = require('http');
+const Filter = require('bad-words')
+const filter = new Filter();
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
@@ -14,12 +16,18 @@ app.get('/',(req,res)=>{
 io.on('connection',(socket)=>{
     console.log('Client is connected!!!');
     socket.emit('message','Welcome to chat room');
-    socket.on('message',(message)=>{
+    socket.on('message',(message,callback)=>{
+        if(filter.isProfane(message)){
+            callback('Your message was sanitized as it contains profane words!!!');
+            message = filter.clean(message)
+        }
         // io.emit('receivedMessage',message);
         socket.broadcast.emit('message',message);
+        callback();
     })
-    socket.on('sendLocation',({latitude,longitude})=>{
-        io.emit('message',`https://maps.google.com?q=${latitude},${longitude}`);
+    socket.on('sendLocation',({latitude,longitude},callback)=>{
+        socket.broadcast.emit('message',`https://maps.google.com?q=${latitude},${longitude}`);
+        callback();
     })
 })
 

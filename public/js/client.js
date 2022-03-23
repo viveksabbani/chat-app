@@ -4,7 +4,12 @@ document.querySelector('#message-form').addEventListener('submit',(event)=>{
     event.preventDefault();
     // const message = document.querySelector('#user-input').value;
     const message = event.target.elements.userInput.value;
-    socket.emit('message',message);
+    socket.emit('message',message,(error)=>{
+        if(error){
+           return console.log(error);
+        }
+        console.log('Message delivered');
+    });
 })
 
 socket.on('message',(message)=>{
@@ -17,6 +22,8 @@ document.querySelector('#send-location').addEventListener('click',()=>{
   }
   navigator.geolocation.getCurrentPosition((position)=>{
       const {latitude, longitude} = position.coords;
-      socket.emit('sendLocation',{latitude,longitude});
+      socket.emit('sendLocation',{latitude,longitude},()=>{
+          console.log("Location shared!!!");
+      });
   })
 })
